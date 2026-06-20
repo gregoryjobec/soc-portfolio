@@ -1,0 +1,26 @@
+title: Suspicious Mailbox Forwarding Rule Creation
+id: 9c1e3f5a-7d2b-4f8e-9a1c-5e3d7b9f1a2c
+status: experimental
+description: Detects creation of inbox rules that forward, redirect, or delete messages — a common BEC post-compromise technique used to silently exfiltrate or hide emails.
+author: Gregory Jobe
+date: 2026/06/01
+references:
+    - https://attack.mitre.org/techniques/T1114/003/
+tags:
+    - attack.t1114.003
+logsource:
+    product: m365
+    service: exchange
+detection:
+    selection:
+        Operation:
+            - New-InboxRule
+            - Set-InboxRule
+    keywords:
+        - RedirectTo
+        - ForwardTo
+        - DeleteMessage
+    condition: selection and keywords
+falsepositives:
+    - Legitimate automation rules set up by users for personal organization
+level: high
