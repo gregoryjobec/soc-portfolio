@@ -2,7 +2,7 @@
 
 Vendor-neutral Sigma rule conversions written to demonstrate detection logic that's portable across SIEM platforms, not just Microsoft Sentinel.
 
-Validated using [Uncoder.io](https://uncoder.io) — each rule below converts cleanly to a working native query (see `screenshots/` for conversion proof).
+Validated using [Uncoder.io](https://uncoder.io) — each rule below converts cleanly to a working native query (see [screenshots](https://github.com/gregoryjobec/soc-portfolio/tree/9f999e441be81990c2a73d28aa0abc42e66ec998/sigma-rules/screenshots) for conversion proof).
 
 | Rule | Converted from | MITRE ATT&CK | Converts to |
 |---|---|---|---|
