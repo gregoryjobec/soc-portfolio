@@ -1,0 +1,13 @@
+// Detects creation of mailbox forwarding/hiding rules — a common BEC technique
+// used to silently exfiltrate or redirect email after an account is compromised.
+// MITRE ATT&CK: T1114.003 - Email Forwarding Rule
+
+OfficeActivity
+| where OfficeWorkload == "Exchange" // Keep only actions that happened in Exchange (mailbox-related actions)
+| where Operation in ("New-InboxRule", "Set-InboxRule") // Keep only operations where an inbox rule was created or modified —
+| extend RuleParams = tostring(Parameters) // The rule's actual settings are stored inside a "Parameters" field as JSON/array data.
+| where RuleParams has_any ("RedirectTo", "ForwardTo", "DeleteMessage", "MoveToFolder")
+// Check if the rule's settings contain any of these suspicious actions —
+// forwarding mail out, redirecting it, deleting it, or hiding it in another folder.
+| project TimeGenerated, UserId, Operation, RuleParams, ClientIP
+| order by TimeGenerated desc // Show the most recent rule creations first
