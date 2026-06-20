@@ -1,0 +1,17 @@
+// Detects suspicious child processes spawned from Office applications —
+// a common pattern in malicious macro / trojan delivery via phishing attachments.
+// MITRE ATT&CK: T1204.002 - Malicious File
+
+DeviceProcessEvents
+// DeviceProcessEvents logs every process that starts on a monitored endpoint,
+| where InitiatingProcessFileName in~ ("winword.exe", "excel.exe", "powerpnt.exe", "outlook.exe") // Keep only events where the PARENT process is an Office app —
+// "in~" means case-insensitive match, since file names can appear in different cases
+| where FileName in~ ("powershell.exe", "cmd.exe", "wscript.exe", "mshta.exe", "regsvr32.exe")
+// Keep only events where the CHILD process (the one actually spawned) is one of these tools.
+// Office apps legitimately never need to launch PowerShell, cmd, or script interpreters —
+// so seeing this combination is a strong red flag for malicious macros or embedded scripts
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, FileName, ProcessCommandLine, AccountName
+// Output the key columns: when it happened, which device, the Office app (parent),
+// the suspicious tool (child), the full command used, and which user account was active
+| order by TimeGenerated desc
+// Show the most recent suspicious activity first
