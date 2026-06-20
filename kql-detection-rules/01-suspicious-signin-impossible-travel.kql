@@ -1,0 +1,13 @@
+// Detects sign-ins from two different countries by the same user within a short time window —
+// a simplified indicator of impossible travel.
+// MITRE ATT&CK: T1078 - Valid Accounts
+
+SigninLogs
+| where ResultType == 0
+| extend Country = tostring(parse_json(Location).countryOrRegion) // parse_json() reads it as JSON, then we pull out just the country and store it
+| summarize CountryCount = dcount(Country), Countries = make_set(Country), Times = make_set(TimeGenerated)
+    by UserPrincipalName, bin(TimeGenerated, 1h)
+// This is the core logic — group all sign-in rows by user and by 1-hour time buckets.
+// For each user + hour group, calculate:
+| where CountryCount > 1
+| project UserPrincipalName, TimeGenerated, Countries, CountryCount
