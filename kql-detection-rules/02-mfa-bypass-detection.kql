@@ -1,0 +1,17 @@
+// Detects repeated MFA failures followed by a successful sign-in within a short window —
+// indicative of MFA fatigue / push-bombing or bypass attempts.
+// MITRE ATT&CK: T1556 - Modify Authentication Process
+
+SigninLogs
+| where TimeGenerated > ago(1d)
+| where AuthenticationRequirement == "multiFactorAuthentication" // Filter to sign-ins where MFA was actually required
+| summarize
+    FailedAttempts = countif(ResultType != 0),
+    SuccessAfterFailures = countif(ResultType == 0),
+    LastFailureTime = maxif(TimeGenerated, ResultType != 0),
+    LastSuccessTime = maxif(TimeGenerated, ResultType == 0)
+    by UserPrincipalName, bin(TimeGenerated, 30m) // Group sign-in attempts by user and by 30-minute time buckets.
+| where FailedAttempts >= 5 and SuccessAfterFailures > 0
+| where LastSuccessTime > LastFailureTime
+| project UserPrincipalName, FailedAttempts, LastFailureTime, LastSuccessTime
+| order by FailedAttempts desc // Sort so the most suspicious cases (highest failure count) appear first
