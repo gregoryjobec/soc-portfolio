@@ -1,0 +1,21 @@
+// Detects sign-ins that happened shortly after a user clicked a flagged phishing URL —
+// a pattern that can indicate credential theft.
+// MITRE ATT&CK: T1566 - Phishing
+
+// Step 1: Get the list of users who clicked a phishing link in the last 24 hours
+
+let phishedUsers = EmailUrlInfo
+| where TimeGenerated > ago(1d)
+| where UrlLocation == "Clicked" and ThreatTypes has "Phish" // Keep only confirmed phishing links that were actually clicked
+| project RecipientEmailAddress, ClickTime = TimeGenerated;
+
+// Step 2: Check if any of those users signed in shortly after clicking phishedUsers
+
+| join kind=inner SigninLogs on $left.RecipientEmailAddress == $right.UserPrincipalName
+// Match each phished user to their sign-in records, using their email address
+| where ResultType == 0
+| where TimeGenerated between (ClickTime .. ClickTime + 2h)
+// Keep only sign-ins that happened within 2 hours AFTER the phishing click —
+// this time window is what makes the correlation meaningful
+| project RecipientEmailAddress, ClickTime, SigninTime = TimeGenerated, IPAddress, Location //  who, when they clicked, when they signed in, from where
+| order by ClickTime desc // Show the most recent phishing-to-signin correlations first
