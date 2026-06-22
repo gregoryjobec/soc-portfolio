@@ -19,3 +19,32 @@ Microsoft Sentinel incident created, filtered to incidents tagged "Phishing" or 
 5. **Document** — Add an automated comment to the Sentinel incident confirming enrichment was completed and attaching the VirusTotal result
 
 ## Architecture
+Sentinel Incident (Phishing)
+
+|
+v
+
+Parse Entities (sender, URL, hash)
+
+|
+v
+
+VirusTotal API Lookup
+
+|
+v
+
++----+----+
+|         |
+v         v
+Teams Alert   Incident Comment
+(SOC channel) (audit trail)
+
+## Why this matters
+Reduces time-to-first-enrichment on phishing incidents, letting analysts start investigation with context already attached rather than performing manual IOC lookups for every alert. At 30-50 alerts/shift, automating this first enrichment step meaningfully reduces analyst triage load.
+
+## Implementation notes
+This playbook design is adapted from Microsoft's official Sentinel playbook templates (Logic Apps connectors for Sentinel, HTTP, and Microsoft Teams). The workflow above reflects standard SOAR automation patterns used in production Microsoft Sentinel environments.
+
+## Files
+- `playbook-logic.md` — step-by-step Logic Apps configuration reference
