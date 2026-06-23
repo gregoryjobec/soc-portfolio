@@ -27,8 +27,11 @@ Initialize variable: SuspiciousURL = entities('URL')?['Url']
 ### 3. Enrich via VirusTotal
 
 HTTP Action:
+
 Method: GET
+
 URI: https://www.virustotal.com/api/v3/urls/{base64-encoded-url}
+
 Headers: x-apikey: <stored securely in Logic App parameters, not hardcoded>
 
 Parse the JSON response to extract:
@@ -38,20 +41,29 @@ Parse the JSON response to extract:
 ### 4. Notify Teams
 
 Teams Action: Post message in a channel
+
 Channel: SOC-Alerts
 
 Message:
+
 🚨 Phishing Alert
+
 Sender: @{variables('SenderEmail')}
+
 URL: @{variables('SuspiciousURL')}
+
 VirusTotal malicious score: @{body('HTTP')?['data']?['attributes']?['last_analysis_stats']?['malicious']}
+
 Incident severity: @{triggerBody()?['object']?['properties']?['severity']}
 
 ### 5. Comment on incident
 
 Sentinel Action: Add comment to incident
+
 Comment: "Automated enrichment complete — VirusTotal malicious score:
+
 @{body('HTTP')?['data']?['attributes']?['last_analysis_stats']?['malicious']}.
+
 Reviewed by automation at @{utcNow()}."
 
 ## Security considerations
