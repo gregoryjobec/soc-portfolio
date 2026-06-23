@@ -20,7 +20,6 @@ Microsoft Sentinel incident created, filtered to incidents tagged "Phishing" or 
 
 ## Architecture
 
-\`\`\`
 Sentinel Incident (Phishing)
         |
         v
@@ -35,7 +34,6 @@ VirusTotal API Lookup
    v         v
 Teams Alert   Incident Comment
 (SOC channel) (audit trail)
-\`\`\`
 
 ## Why this matters
 Reduces time-to-first-enrichment on phishing incidents, letting analysts start investigation with context already attached rather than performing manual IOC lookups for every alert. At 30-50 alerts/shift, automating this first enrichment step meaningfully reduces analyst triage load.
