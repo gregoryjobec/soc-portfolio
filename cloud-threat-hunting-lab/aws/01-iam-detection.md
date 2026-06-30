@@ -350,3 +350,46 @@ AWSCloudTrail
 ---
 
 ## Lab Timeline
+```
+07:28:00      Create user            CreateUser
+07:28:15      Attach admin policy    AttachUserPolicy
+07:28:30      Create access key      CreateAccessKey
+07:28:45      Add to admin group     AddUserToGroup
+Total time: 45 seconds
+Pattern: Rapid privilege escalation
+```
+---
+
+## Evidence
+
+### Screenshots Captured
+1. IAM user "attacker" created (user list view)
+2. AdministratorAccess policy attached (permissions tab)
+3. Access key created (security credentials tab)
+4. User added to Admin group (groups tab)
+5. S3 CloudTrail bucket showing logs stored
+
+### CloudTrail Evidence
+- CloudTrail trail "SecurityLab" status: **Logging** ✓
+- S3 bucket with CloudTrail logs: **cloudtrail-logs-...** ✓
+- Regions logging: **ap-southeast-2/, us-east-1/** ✓
+
+---
+
+## Key Takeaways
+
+1. **CloudTrail logs ALL API calls** — nothing escapes detection
+2. **Rapid privilege escalation** is a red flag — investigate immediately
+3. **Multiple persistence methods** (direct policy + group + API key) = intentional attacker
+4. **Detection queries** catch attack patterns automatically
+5. **Timeline matters** — 45 seconds for 4 events = very suspicious
+
+---
+
+## Next Steps
+
+- [ ] Set up CloudTrail alerts for similar patterns
+- [ ] Create automated response (disable user on alert)
+- [ ] Test detection queries against real account
+- [ ] Document response procedures
+- [ ] Train team on privilege escalation detection
