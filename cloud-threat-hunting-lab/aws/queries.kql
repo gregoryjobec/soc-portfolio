@@ -1,0 +1,113 @@
+// ============================================
+// AWS CloudTrail - IAM Detection Queries
+// Lab 1: Suspicious IAM Activity Detection
+// ============================================
+
+// ============================================
+// QUERY 1: Investigation Query
+// Find all IAM events for suspicious user
+// ============================================
+
+// Purpose: List all privilege-related activity for investigation
+// Use case: You've identified a suspicious user, want complete history
+// When to run: Post-incident investigation
+
+AWSCloudTrail
+| where EventName in ("CreateUser", "AttachUserPolicy", "AddUserToGroup", "CreateAccessKey")
+| where UserIdentity_principalId == "attacker" or RequestParameters contains "attacker"
+| project TimeGenerated, EventName, UserIdentity_principalId, EventSource, RequestParameters, SourceIPAddress
+| order by TimeGenerated asc
+
+// Expected output:
+// 4 rows with events in chronological order
+// - CreateUser (07:28:00)
+// - AttachUserPolicy (07:28:15)
+// - CreateAccessKey (07:28:30)
+// - AddUserToGroup (07:28:45)
+
+// ============================================
+// QUERY 2: Detection Query - Rapid Escalation
+// Detect 3+ IAM changes in 5 minutes (privilege escalation pattern)
+// ============================================
+
+// Purpose: Real-time detection of privilege escalation attempts
+// Use case: Automated alerting in SIEM
+// When to run: Continuous monitoring
+// Alert threshold: EventCount >= 3
+
+AWSCloudTrail
+| where EventName in ("CreateUser", "AttachUserPolicy", "AddUserToGroup", "CreateAccessKey")
+| summarize EventCount = count(), Events = make_list(EventName) by UserIdentity_principalId, SourceIPAddress, bin(TimeGenerated, 5m)
+| where EventCount >= 3
+| project TimeGenerated, UserIdentity_principalId, SourceIPAddress, EventCount, Events
+
+// Expected output:
+// 1 row showing attack pattern flagged
+// EventCount: 3 or 4 (number of events in 5-minute window)
+// Events: ["CreateUser", "AttachUserPolicy", "CreateAccessKey", "AddUserToGroup"]
+// Severity: HIGH
+
+// ============================================
+// QUERY 3: Detection Query - Admin Policy Grant
+// Detect anytime admin policy is attached to user
+// ============================================
+
+// Purpose: Real-time detection of admin access grants
+// Use case: Compliance tracking, sensitive operation alerting
+// When to run: Continuous monitoring
+// Alert threshold: Always alert (no threshold)
+
+AWSCloudTrail
+| where EventName == "AttachUserPolicy"
+| where RequestParameters contains "AdministratorAccess"
+| project TimeGenerated, UserIdentity_principalId, EventName, RequestParameters, SourceIPAddress, UserAgent
+
+// Expected output:
+// Row for each admin policy attachment
+// Shows: Who did it, when, what policy, from where
+// Review: Was this authorized?
+
+// ============================================
+// ADDITIONAL QUERIES FOR VARIATIONS
+// ============================================
+
+// QUERY 4: Detect all user creation (baseline)
+// Use: Establish baseline of who creates users
+AWSCloudTrail
+| where EventName == "CreateUser"
+| project TimeGenerated, UserIdentity_principalId, RequestParameters, SourceIPAddress, ErrorCode
+| order by TimeGenerated desc
+
+// QUERY 5: Detect all access key creation
+// Use: Who is creating API credentials?
+AWSCloudTrail
+| where EventName == "CreateAccessKey"
+| project TimeGenerated, UserIdentity_principalId, RequestParameters, SourceIPAddress
+| order by TimeGenerated desc
+
+// QUERY 6: Detect failed privilege escalation attempts
+// Use: Catch attacks that fail (still suspicious)
+AWSCloudTrail
+| where EventName in ("AttachUserPolicy", "AddUserToGroup", "CreateAccessKey")
+| where ErrorCode != ""
+| project TimeGenerated, UserIdentity_principalId, EventName, ErrorCode, ErrorMessage, SourceIPAddress
+| order by TimeGenerated desc
+
+// ============================================
+// NOTES FOR DEPLOYMENT
+// ============================================
+
+// These queries are ready for:
+// 1. Azure Sentinel KQL syntax (if connected)
+// 2. CloudWatch Insights (native AWS)
+// 3. Third-party SIEM (may need minor syntax adjustments)
+
+// For alerting:
+// - Query 2: Alert if EventCount >= 3 in 5 minutes
+// - Query 3: Alert on every result (no threshold)
+// - Query 6: Alert on failed attempts (unusual patterns)
+
+// Recommendation:
+// Start with Query 2 (Rapid Escalation) for production alerts
+// Monitor Query 3 for compliance/audit
+// Use Query 4-6 for tuning and baseline understanding
