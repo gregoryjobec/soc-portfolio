@@ -382,3 +382,49 @@ AWSCloudTrail
 ---
 
 ## Lab Timeline
+```
+Time      Event                              CloudTrail Event
+
+10:25:00  Launch exposed-instance            RunInstances (m7i-flex.large)
+10:25:15  Open SSH to 0.0.0.0/0              AuthorizeSecurityGroupIngress (port 22)
+Total events: 2
+Time window: 15 seconds
+Pattern: Instance launch + immediate public exposure
+```
+---
+
+## Screenshots & Evidence
+
+### Screenshot 1: Running Instance
+Shows m7i-flex.large instance named "exposed-instance" in running state.
+
+### Screenshot 2: Security Group Configuration
+Shows security group with SSH (port 22) allowed from 0.0.0.0/0.
+
+### Screenshot 3: Inbound Rules
+Shows the specific rule: Protocol TCP, Port 22, Source 0.0.0.0/0.
+
+### Screenshot 4: CloudTrail Events
+Shows RunInstances and AuthorizeSecurityGroupIngress events captured.
+
+---
+
+## Key Takeaways
+
+1. **CloudTrail logs all security group changes**
+2. **0.0.0.0/0 = entire internet = critical risk**
+3. **SSH access without restriction = major vulnerability**
+4. **Quick detection prevents most attacks**
+5. **SSH brute force is common post-exposure attack**
+
+---
+
+## Lessons Learned
+
+- Always restrict security group access to specific IPs
+- Port 22 (SSH) should NEVER be 0.0.0.0/0
+- Use bastion host architecture for SSH access
+- Detection alerts on port 22 changes are critical
+- This single misconfiguration can compromise infrastructure
+
+---
