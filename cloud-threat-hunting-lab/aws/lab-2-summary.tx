@@ -1,0 +1,211 @@
+================================================================================
+LAB 2: EC2 EXPOSED SECURITY GROUP DETECTION
+================================================================================
+
+PROJECT: Cloud Threat Hunting Lab
+DATE COMPLETED: June 30, 2026
+STATUS: ✓ COMPLETE
+
+================================================================================
+ATTACK SIMULATION
+================================================================================
+
+Scenario: Exposed Security Group
+  ✓ Launched EC2 instance: exposed-instance
+  ✓ Instance type: m7i-flex.large
+  ✓ Created custom security group
+  ✓ Opened SSH (port 22) to 0.0.0.0/0 (entire internet)
+  ✓ Instance now accessible from any IP
+
+Total Events Captured: 2
+- RunInstances (instance launch)
+- AuthorizeSecurityGroupIngress (port 22 opened)
+
+Time Window: 15 seconds
+Pattern: Instance launch + immediate public exposure
+
+================================================================================
+CLOUDTRAIL EVENTS
+================================================================================
+
+Event 1: RunInstances
+  - Instance: exposed-instance
+  - Type: m7i-flex.large
+  - Region: us-east-1
+  - Status: Success
+  - Time: 10:25:00 UTC
+
+Event 2: AuthorizeSecurityGroupIngress
+  - Port: 22 (SSH)
+  - Protocol: TCP
+  - Source: 0.0.0.0/0 (entire internet)
+  - Status: Success
+  - Time: 10:25:15 UTC
+
+================================================================================
+DETECTION QUERIES DEVELOPED
+================================================================================
+
+Query 1: Unrestricted SSH Detection
+  Purpose: Find SSH (port 22) allowed from 0.0.0.0/0
+  Status: ✓ Ready
+  Alert threshold: Always alert
+  Severity: CRITICAL
+
+Query 2: All Unrestricted Access
+  Purpose: Find ANY port allowed from 0.0.0.0/0
+  Status: ✓ Ready
+  Alert threshold: Always alert
+  Severity: HIGH
+
+Query 3: Instance Launch Detection
+  Purpose: Find all RunInstances events
+  Status: ✓ Ready
+  Alert threshold: None (baseline)
+  Severity: MEDIUM
+
+Query 4: Timeline Correlation
+  Purpose: Show instance + exposure sequence
+  Status: ✓ Ready
+  Alert threshold: None (investigational)
+
+Query 5: Security Group Baseline
+  Purpose: Establish normal activity baseline
+  Status: ✓ Ready
+  Alert threshold: None (baseline)
+
+Total Queries: 5 production-ready
+
+================================================================================
+ATTACK PATTERN DETECTED
+================================================================================
+
+Pattern: Exposed Instance Gateway
+
+Indicators:
+  ✓ Instance launched with custom security group
+  ✓ SSH immediately opened to entire internet
+  ✓ No network restrictions
+  ✓ Accessible from anywhere
+
+Severity: CRITICAL
+
+Impact:
+  - SSH brute force attacks possible
+  - Unauthorized login attempts
+  - Potential system compromise
+  - Access to company network (if accessible internally)
+
+Response:
+  - Terminate instance immediately
+  - Delete/restrict security group
+  - Check CloudTrail for SSH login attempts
+  - Audit all other instances
+  - Review who created this
+
+================================================================================
+MITRE ATT&CK COVERAGE
+================================================================================
+
+Techniques:
+  ✓ T1578.001: Create Cloud Instance
+  ✓ T1570: Lateral Movement (jump box)
+  ✓ T1078: Valid Accounts (SSH access)
+  ✓ T1098: Account Manipulation (persistence)
+
+Tactics:
+  ✓ Lateral Movement
+  ✓ Persistence
+  ✓ Privilege Escalation
+
+================================================================================
+FILES CREATED
+================================================================================
+
+1. 02-ec2-detection.md
+   - Complete scenario documentation
+   - CloudTrail event explanations
+   - 5 KQL detection queries
+   - Real-world attack scenarios
+   - Defense recommendations
+   - MITRE ATT&CK mapping
+
+2. ec2-queries.kql
+   - 5 production-ready KQL queries
+   - Alert thresholds and severity
+   - Expected results documented
+
+3. lab-2-summary.txt
+   - This file
+   - Quick reference
+
+================================================================================
+WHAT THIS TEACHES
+================================================================================
+
+1. CloudTrail logs all security group changes in real-time
+2. 0.0.0.0/0 (entire internet) is a critical vulnerability
+3. SSH without restrictions creates major attack surface
+4. Rapid detection prevents most post-exposure attacks
+5. Instance + security group coordination shows attacker intent
+6. Detection automation critical for quick response
+
+================================================================================
+COMBINED LABS (1 + 2)
+================================================================================
+
+Lab 1: IAM Privilege Escalation
+  - 4 events captured
+  - 3 queries written
+  - Attack: User creation + admin access
+
+Lab 2: EC2 Exposed Security Group
+  - 2 events captured
+  - 5 queries written
+  - Attack: Instance + public exposure
+
+Total:
+  - 6 CloudTrail events demonstrated
+  - 8 KQL detection queries
+  - 2 attack vectors covered
+  - Professional-grade documentation
+  - Real-world scenarios
+
+================================================================================
+INTERVIEW READY
+================================================================================
+
+"I built hands-on AWS threat hunting labs. Lab 1: I simulated IAM privilege
+escalation by creating a user, attaching admin policies, and creating API
+credentials - 4 events in 45 seconds. I wrote queries to detect rapid
+escalation and admin policy attachment.
+
+Lab 2: I simulated exposed infrastructure by launching an EC2 instance with
+SSH open to the entire internet (0.0.0.0/0). I wrote queries to detect
+unrestricted access, correlate instance launch with exposure, and establish
+baselines.
+
+Across both labs, I developed 8 production-ready KQL queries in Azure Sentinel
+syntax, documented complete attack scenarios with MITRE ATT&CK mappings,
+and showed real-world detection and response strategies."
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+Lab 3: S3 Bucket Exposure
+  - Enable public access on S3 bucket
+  - Write detection queries
+  - Document complete scenario
+  - Estimated: 2-3 hours
+
+Total Portfolio:
+  - 3 complete threat hunting labs
+  - 10+ KQL detection queries
+  - 12+ CloudTrail events
+  - Professional documentation
+  - GitHub-ready artifacts
+
+================================================================================
+END OF LAB 2
+================================================================================
