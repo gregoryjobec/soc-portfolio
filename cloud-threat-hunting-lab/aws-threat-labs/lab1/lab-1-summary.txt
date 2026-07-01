@@ -191,14 +191,8 @@ Lab 2: EC2 Suspicious Instance Creation (in progress)
   - Write detection queries
   - Estimated: 2-3 hours
 
-Lab 3: S3 Bucket Exposure (in progress)
-  - Enable public access on S3
-  - Detect via PutBucketAcl/PutBucketPolicy
-  - Write detection queries
-  - Estimated: 2-3 hours
-
-Total Cloud Labs: 3 (AWS focused)
-Total Lab Time: ~6-7 hours
+Total Cloud Labs: 2 (AWS focused)
+Total Lab Time: ~4-5 hours
 GitHub Commits: 1 (cloud-threat-hunting-lab folder)
 
 ================================================================================
