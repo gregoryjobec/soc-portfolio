@@ -1,0 +1,78 @@
+// ============================================
+// AWS CloudTrail - EC2 Security Group Queries
+// Lab 2: Exposed Security Group Detection
+// ============================================
+
+// ============================================
+// QUERY 1: Detect Unrestricted SSH Access (CRITICAL)
+// Find port 22 allowed from 0.0.0.0/0
+// ============================================
+
+AWSCloudTrail
+| where EventName == "AuthorizeSecurityGroupIngress"
+| where RequestParameters contains "0.0.0.0/0" and RequestParameters contains "22"
+| project TimeGenerated, UserIdentity_principalId, EventName, RequestParameters, SourceIPAddress
+| order by TimeGenerated desc
+
+// Alert: Always alert on every match
+// Severity: CRITICAL
+// Expected: SSH opened to entire internet
+
+// ============================================
+// QUERY 2: Detect All Unrestricted Access
+// Find ANY port opened to 0.0.0.0/0
+// ============================================
+
+AWSCloudTrail
+| where EventName == "AuthorizeSecurityGroupIngress"
+| where RequestParameters contains "0.0.0.0/0"
+| project TimeGenerated, UserIdentity_principalId, EventName, RequestParameters, SourceIPAddress
+| order by TimeGenerated desc
+
+// Alert: Always alert on every match
+// Severity: HIGH
+// Expected: All public ports opened
+
+// ============================================
+// QUERY 3: Detect Instance Launches
+// Find RunInstances with security group IDs
+// ============================================
+
+AWSCloudTrail
+| where EventName == "RunInstances"
+| project TimeGenerated, UserIdentity_principalId, EventName, RequestParameters, SourceIPAddress, AwsRegion
+| order by TimeGenerated desc
+
+// Alert: None (informational)
+// Severity: MEDIUM
+// Use: Correlate with Query 1 to find exposed instances
+
+// ============================================
+// QUERY 4: Timeline - Correlate Instance + Exposure
+// Show sequence: RunInstances then AuthorizeSecurityGroupIngress
+// ============================================
+
+AWSCloudTrail
+| where EventName in ("AuthorizeSecurityGroupIngress", "RunInstances")
+| where RequestParameters contains "exposed" or RequestParameters contains "0.0.0.0/0"
+| project TimeGenerated, EventName, UserIdentity_principalId, RequestParameters
+| order by TimeGenerated asc
+
+// Alert: None (investigational)
+// Use: Understand attacker progression
+// Expected: Instance launched then exposed
+
+// ============================================
+// QUERY 5: Baseline - All Security Group Changes
+// Establish baseline of security group modifications
+// ============================================
+
+AWSCloudTrail
+| where EventName == "AuthorizeSecurityGroupIngress"
+| project TimeGenerated, UserIdentity_principalId, EventName, RequestParameters, SourceIPAddress
+| order by TimeGenerated desc
+| limit 50
+
+// Alert: None (baseline)
+// Use: Understand normal vs suspicious patterns
+// Expected: Mix of authorized and unauthorized changes
